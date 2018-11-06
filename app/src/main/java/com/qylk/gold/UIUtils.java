@@ -50,7 +50,8 @@ public class UIUtils {
         legend.setEnabled(false);
         Description description = lineChart.getDescription();
         description.setTextColor(Color.YELLOW);
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm更新");
+        description.setTextSize(12);
+        DateFormat format = new SimpleDateFormat("dd日HH点 更新");
         description.setText(format.format(new Date(System.currentTimeMillis())));
         List<Entry> entries = new ArrayList<>();
         for (Pair<Long, Float> item : myData) {

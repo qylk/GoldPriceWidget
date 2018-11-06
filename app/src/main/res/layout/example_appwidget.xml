@@ -9,5 +9,6 @@
         android:id="@+id/lineChart"
         android:layout_width="358dp"
         android:layout_height="wrap_content"
+        android:clickable="true"
         android:scaleType="fitCenter" />
 </LinearLayout>

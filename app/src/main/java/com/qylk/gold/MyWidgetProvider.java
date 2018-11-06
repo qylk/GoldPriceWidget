@@ -2,41 +2,48 @@ package com.qylk.gold;
 
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
-import android.os.AsyncTask;
-import android.util.Pair;
+import android.content.Intent;
 import android.widget.RemoteViews;
 
-import java.util.List;
-
 public class MyWidgetProvider extends AppWidgetProvider {
+    public static final String ACTION = "com.qylk.gold.update";
+
     @Override
     public void onUpdate(final Context context, final AppWidgetManager appWidgetManager,
                          final int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        int appId = 0;
-        for (int i = 0; i < appWidgetIds.length; i++) {
-            appId = appWidgetIds[i];
-        }
-        refresh(context, appId);
+        refresh(context, false);
     }
 
-    private void refresh(final Context context, final int appId) {
-        new AsyncTask<Void, Void, List<Pair<Long, Float>>>() {
-            @Override
-            protected List<Pair<Long, Float>> doInBackground(Void... voids) {
-                return DataRepository.getData();
-            }
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        if (ACTION.equals(intent.getAction())) {
+            refresh(context, true);
+        }
+    }
 
-            @Override
-            protected void onPostExecute(List<Pair<Long, Float>> pairs) {
-                super.onPostExecute(pairs);
-                if (pairs != null && pairs.size() > 0) {
-                    final RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_appwidget);
-                    remoteViews.setImageViewBitmap(R.id.lineChart, UIUtils.drawBitmap(context, pairs));
-                    AppWidgetManager.getInstance(context).updateAppWidget(appId, remoteViews);
-                }
-            }
-        }.execute();
+    @Override
+    public void onDisabled(Context context) {
+        super.onDisabled(context);
+        MyJobService.stop(context);
+    }
+
+    @Override
+    public void onEnabled(Context context) {
+        super.onEnabled(context);
+        MyJobService.stop(context);
+        final RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_appwidget);
+        remoteViews.setImageViewResource(R.id.lineChart, android.R.drawable.ic_popup_sync);
+        int[] appIds = AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, MyWidgetProvider.class));
+        for (int id : appIds) {
+            AppWidgetManager.getInstance(context).updateAppWidget(id, remoteViews);
+        }
+    }
+
+    private void refresh(Context context, boolean force) {
+        MyJobService.start(context, force);
     }
 }
